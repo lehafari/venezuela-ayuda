@@ -8,6 +8,10 @@ Lee esto una vez antes de tu primer PR. Toma 5 minutos y te ahorra rebotes.
 
 > Documentación ampliada en [`docs/colaboracion/`](docs/colaboracion/): mejores prácticas
 > (con fuentes), estrategia de ramas, gestión de migraciones y gobernanza.
+>
+> 💬 **¿Dónde preguntar?** Cada área tiene su canal de chat — ver
+> [`canales-de-comunicacion.md`](docs/colaboracion/canales-de-comunicacion.md). Recuerda: las
+> decisiones y el trabajo se rastrean en **issues/PRs**, no en el chat.
 
 ## 🚪 Punto de entrada: empieza por los issues
 
