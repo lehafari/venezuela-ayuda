@@ -11,7 +11,8 @@ el proyecto de verdad** — exagerar la madurez genera fricción. Fundamento y f
 | **Contributor** | Abrir issues y PRs (fork o rama) | Cualquiera |
 | **Triager** | Etiquetar, mover/cerrar issues, pedir cambios — **sin** write a código | Se otorga liberalmente; descarga a los maintainers |
 | **Code Owner** (por dominio) | Revisar y aprobar PRs de su área | Compromiso sostenido en ese dominio |
-| **Maintainer** | Merge a `staging`/`main`, releases, gestión del repo | Confianza y alineación con la dirección del proyecto (más que skill puro) |
+| **QA / Testing** | Validar cambios en **staging**; su visto bueno es requisito para promover a `main` | Equipo dedicado (`@mawmawmaw/equipo-qa`) |
+| **Maintainer** | Merge a `staging`/`main`, **promoción `staging → main`** (tras QA), releases, gestión del repo | Confianza y alineación con la dirección del proyecto (más que skill puro) |
 
 Áreas/dominios y sus owners están en [`.github/CODEOWNERS`](../../.github/CODEOWNERS):
 ingesta, datos/dedup, fr, admin, mapa/ui, db, ci.

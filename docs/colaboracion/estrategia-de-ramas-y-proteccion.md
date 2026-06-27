@@ -11,9 +11,22 @@ feat/<área>/<descripción>  ──PR──▶  staging  ──PR (solo maintain
 ```
 
 - **`main`** = producción. Cada push dispara `apply-migrations.yml` contra la **DB de prod**.
-  Solo entra vía PR de promoción desde `staging`.
-- **`staging`** = preproducción con **DB propia**. Integración y prueba real antes de prod.
-- **`feat/*`** = ramas de trabajo cortas. Se ramifican desde `staging`.
+  Solo entra vía PR de promoción desde `staging`, **y tras pasar QA** (ver abajo).
+- **`staging`** = preproducción con **DB propia**. Integración, **QA** y prueba real antes de prod.
+- **`feat/*`** = ramas de trabajo cortas. Se ramifican desde `staging`. Nacen de un **issue
+  asignado** (el issue es el punto de entrada — ver [`gestion-de-issues.md`](./gestion-de-issues.md)).
+
+### QA en staging (gate antes de `main`)
+
+Nada llega a producción sin pasar QA en staging. **Modelo mixto:**
+- **Por PR:** al mergear a `staging`, un responsable de QA valida ese cambio en el entorno de
+  staging.
+- **Ronda integrada:** antes de cada promoción `staging → main`, QA verifica el **conjunto**
+  acumulado (que los cambios no se rompan entre sí).
+
+**Responsables de QA/testing en staging:** **@mawmawmaw/equipo-qa** _(reemplazar por los
+@handles reales)_. Su aprobación es **requisito** para el PR de promoción a `main`. Un bug
+hallado en QA → issue + `status:blocked` si frena la promoción.
 
 Por qué este modelo (no GitFlow): despliegue continuo + voluntarios = flujo ligero basado en
 ramas y PRs; la promoción por entornos con merge hacia arriba garantiza ascensos limpios.
