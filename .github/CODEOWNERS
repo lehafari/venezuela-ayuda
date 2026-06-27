@@ -1,0 +1,59 @@
+# CODEOWNERS — propiedad por dominio.
+#
+# Cada PR que toca estas rutas exige la aprobación del equipo dueño (cuando está
+# activada la regla "Require review from Code Owners" en branch protection).
+#
+# MECÁNICA (importante):
+#   - Gana el ÚLTIMO patrón que hace match → ordena de lo general a lo específico.
+#   - Un equipo owner debe ser VISIBLE y tener permiso `write` en el repo.
+#   - Este archivo se busca en .github/ (aquí), raíz o docs/; gana el primero.
+#
+# ⚠️ REEMPLAZA los @mawmawmaw/equipo-* por los equipos reales de GitHub antes de
+#    activar la regla. Si aún no hay equipos, pon usuarios (@usuario) provisionalmente.
+
+# ── Fallback: todo lo no cubierto lo revisan los maintainers ──────────────────
+*                                   @mawmawmaw/maintainers
+
+# ── Ingesta / Hub API ─────────────────────────────────────────────────────────
+/src/app/api/                       @mawmawmaw/equipo-ingesta
+/src/lib/ingest.mjs                 @mawmawmaw/equipo-ingesta
+/src/lib/batchIngest.mjs            @mawmawmaw/equipo-ingesta
+/src/lib/apiAuth.mjs                @mawmawmaw/equipo-ingesta
+/src/lib/apiPolicy.mjs              @mawmawmaw/equipo-ingesta
+/src/lib/partnerAuth.ts             @mawmawmaw/equipo-ingesta
+/src/lib/canonical.mjs              @mawmawmaw/equipo-ingesta
+/src/lib/internalWrite.mjs          @mawmawmaw/equipo-ingesta
+/src/lib/reports.mjs                @mawmawmaw/equipo-ingesta
+/src/lib/patch.mjs                  @mawmawmaw/equipo-ingesta
+/public/openapi.yaml                @mawmawmaw/equipo-ingesta
+/src/app/docs/                      @mawmawmaw/equipo-ingesta
+
+# ── Datos / Deduplicación ─────────────────────────────────────────────────────
+/src/lib/dedup.ts                   @mawmawmaw/equipo-datos
+/src/lib/data.ts                    @mawmawmaw/equipo-datos
+/src/lib/csv.ts                     @mawmawmaw/equipo-datos
+/src/lib/classifyHeuristic.ts       @mawmawmaw/equipo-datos
+/scripts/dedup-lib.mjs              @mawmawmaw/equipo-datos
+
+# ── Reconocimiento facial ─────────────────────────────────────────────────────
+/src/lib/fr.ts                      @mawmawmaw/equipo-fr
+
+# ── Admin / Moderación ────────────────────────────────────────────────────────
+/src/app/admin/                     @mawmawmaw/equipo-admin
+/src/lib/admin.ts                   @mawmawmaw/equipo-admin
+/src/lib/audit.mjs                  @mawmawmaw/equipo-admin
+
+# ── Mapa / UI pública ─────────────────────────────────────────────────────────
+/src/app/mapa/                      @mawmawmaw/equipo-ui
+/src/lib/mapStyle.ts                @mawmawmaw/equipo-ui
+/src/app/ayudar-fuera/              @mawmawmaw/equipo-ui
+/src/lib/helpAbroad.ts              @mawmawmaw/equipo-ui
+
+# ── Base de datos (alto riesgo: prod) ─────────────────────────────────────────
+/supabase/                          @mawmawmaw/equipo-db @mawmawmaw/maintainers
+/scripts/apply-migrations.sh        @mawmawmaw/equipo-db @mawmawmaw/maintainers
+/scripts/check-migrations.mjs       @mawmawmaw/equipo-db @mawmawmaw/maintainers
+
+# ── CI / Infra (alto riesgo: despliegue) ──────────────────────────────────────
+/.github/                           @mawmawmaw/maintainers
+/.github/workflows/                 @mawmawmaw/maintainers

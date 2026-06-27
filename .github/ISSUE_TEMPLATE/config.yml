@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: "🔐 Reporte de seguridad / fuga de PII"
+    url: https://github.com/mawmawmaw/venezuela-ayuda/security/advisories/new
+    about: "NO abras un issue público. Repórtalo en privado (ver SECURITY.md)."
+  - name: "💬 Dudas y coordinación"
+    url: https://github.com/mawmawmaw/venezuela-ayuda/discussions
+    about: "Preguntas, ideas y coordinación entre áreas."
