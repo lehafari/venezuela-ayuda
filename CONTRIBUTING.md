@@ -85,6 +85,8 @@ El mayor riesgo con muchos colaboradores. **Lee
 - ¿Empezando? Busca la etiqueta **`good first issue`**.
 - Reporta bugs y propone features con las [plantillas](.github/ISSUE_TEMPLATE/).
 - Para coordinar, comenta en el issue antes de empezar a trabajarlo (evita trabajo duplicado).
+- Cómo se clasifican y trabajan los issues (triage, labels, board):
+  [`gestion-de-issues.md`](docs/colaboracion/gestion-de-issues.md).
 
 ## Decisiones de arquitectura
 

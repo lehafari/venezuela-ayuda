@@ -235,9 +235,11 @@ Implementan lo anterior; ya están en el repo:
 | [`CONTRIBUTING.md`](../../CONTRIBUTING.md) | Onboarding + flujo de trabajo + reglas de oro de prod |
 | [`.github/CODEOWNERS`](../../.github/CODEOWNERS) | Propiedad por dominio (§4) |
 | [`.github/pull_request_template.md`](../../.github/pull_request_template.md) | PR pequeño, checklist (incl. migraciones) |
-| [`.github/ISSUE_TEMPLATE/`](../../.github/ISSUE_TEMPLATE/) | Bug / feature / good-first |
+| [`.github/ISSUE_TEMPLATE/`](../../.github/ISSUE_TEMPLATE/) | Issue forms (bug / feature) + config |
+| [`.github/labels.yml`](../../.github/labels.yml) + [`workflows/labels.yml`](../../.github/workflows/labels.yml) | Taxonomía de labels + sync |
 | [`estrategia-de-ramas-y-proteccion.md`](./estrategia-de-ramas-y-proteccion.md) | Modelo de ramas + reglas exactas de protección (§2-3) |
 | [`gestion-de-migraciones.md`](./gestion-de-migraciones.md) | Playbook anti-colisión de migraciones (§5) |
+| [`gestion-de-issues.md`](./gestion-de-issues.md) | Triage, labels, ciclo de vida, project board |
 | [`gobernanza.md`](./gobernanza.md) | Roles, ingreso, decisiones, ADRs (§6) |
 
 ---
