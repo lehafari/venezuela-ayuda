@@ -83,6 +83,26 @@ después.
 - Migraciones destructivas en la misma migración que añade (usa expand → migrate → contract).
 - Ejecutar comandos destructivos (`rm -rf`, `DROP`, `TRUNCATE`, resets de DB) sin aprobación.
 
+## Flujo de trabajo: planear → ejecutar → verificar
+
+Para cualquier cambio **no trivial**, sigue este ciclo (en vez de codear directo):
+
+1. **Planear** — diseña un plan concreto antes de tocar código (archivos, pasos, riesgos,
+   cómo verificar). En Claude Code: subagente **`planner`**.
+2. **Ejecutar** — implementa siguiendo el plan, imitando el código existente; escribe los
+   tests en la misma iteración.
+3. **Verificar** — corre `lint`/`build`/`test` y revisa el diff contra las reglas de oro
+   (PII, secretos, tests, migraciones). En Claude Code: subagente **`verifier`**. Si falla,
+   vuelve a ejecutar con el error exacto. **No cierres con el gate en rojo.**
+
+En **Claude Code** el ciclo está automatizado con el comando **`/feature <descripción>`**
+(orquesta `planner → executor → verifier`); los subagentes viven en `.claude/agents/`.
+Otros agentes (Cursor/Copilot/Codex): aplica el mismo ciclo manualmente — planifica primero,
+implementa, y **verifica con los comandos de arriba antes de terminar**.
+
+Escala el flujo a la tarea: cambios triviales pueden ser una sola pasada; reserva el ciclo
+completo para lo no trivial o lo que toca datos reales.
+
 ## Migraciones de base de datos ⚠️
 
 Alto riesgo con muchos colaboradores. Antes de tocar `supabase/migrations/`, lee
@@ -95,6 +115,7 @@ Resumen: **nombre por timestamp** (`YYYYMMDDHHMM_desc.sql`, no secuencial), **id
 - Cómo colaborar (ramas, revisión, gobernanza): [`docs/colaboracion/`](docs/colaboracion/)
 - Cómo contribuir: [`CONTRIBUTING.md`](CONTRIBUTING.md) · Seguridad/PII: [`SECURITY.md`](SECURITY.md)
 - Por qué de este harness (con fuentes): [`docs/colaboracion/harness-ia.md`](docs/colaboracion/harness-ia.md)
+- Flujo planear→ejecutar→verificar y los subagentes: [`docs/colaboracion/flujo-agentes-ia.md`](docs/colaboracion/flujo-agentes-ia.md)
 
 _Mantén este archivo conciso (apunta a <~300 líneas). Las herramientas tienen límites de
 carga (p. ej. Codex corta el conjunto de AGENTS.md a 32 KiB; Cursor recomienda reglas
