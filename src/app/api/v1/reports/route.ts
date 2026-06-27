@@ -17,6 +17,7 @@ import {
   safeDbError,
   SERVICE_UNAVAILABLE_MESSAGE,
 } from "@/lib/apiPolicy.mjs";
+import type { Json } from "@/types/database.types.gen";
 
 // Recurso único `reports` del hub central (v1).
 //
@@ -197,12 +198,12 @@ export async function POST(req: Request) {
     tables.map((t) =>
       svc.rpc("ingest_reports", {
         p_table: t,
-        p_rows: [...byTable[t].values()],
+        p_rows: [...byTable[t].values()] as Json,
         p_partner: partner!.partnerId,
         p_source: source,
         p_request_id: meta.requestId,
-        p_ip: meta.ip,
-        p_user_agent: meta.userAgent,
+        p_ip: meta.ip ?? "",
+        p_user_agent: meta.userAgent ?? "",
       })
     )
   );

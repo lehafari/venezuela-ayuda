@@ -1,5 +1,6 @@
 import "server-only";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import type { Database } from "@/types/database.types.gen";
 
 // Server-only Supabase client.
 //
@@ -20,7 +21,7 @@ const publicKey =
   process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-let cached: SupabaseClient | null = null;
+let cached: SupabaseClient<Database> | null = null;
 
 // True when a secret/service-role key is configured — writes bypass RLS and we
 // can read back inserted rows.
@@ -32,14 +33,14 @@ export function isSupabaseConfigured(): boolean {
   return Boolean(url && (secretKey || publicKey));
 }
 
-export function getServerSupabase(): SupabaseClient {
+export function getServerSupabase(): SupabaseClient<Database> {
   if (!isSupabaseConfigured()) {
     throw new Error(
       "Supabase no está configurado. Define NEXT_PUBLIC_SUPABASE_URL y SUPABASE_SECRET_KEY (o NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY)."
     );
   }
   if (cached) return cached;
-  cached = createClient(url!, (secretKey || publicKey)!, {
+  cached = createClient<Database>(url!, (secretKey || publicKey)!, {
     auth: { persistSession: false, autoRefreshToken: false },
   });
   return cached;

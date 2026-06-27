@@ -1,0 +1,78 @@
+name: "🐞 Reporte de bug"
+description: "Algo no funciona como debería"
+title: "[bug] "
+labels: ["bug", "status:needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Gracias por reportar. ⚠️ **Borra cualquier dato personal/PII** (teléfonos, nombres
+        reales, contactos) de capturas y logs antes de pegarlos.
+  - type: textarea
+    id: what
+    attributes:
+      label: Qué pasa
+      description: Descripción clara del problema.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Pasos para reproducir
+      placeholder: |
+        1.
+        2.
+        3.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Esperado vs actual
+      placeholder: |
+        Esperado:
+        Actual:
+    validations:
+      required: true
+  - type: dropdown
+    id: env
+    attributes:
+      label: Entorno
+      options:
+        - "Producción"
+        - "Staging"
+        - "Local"
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Área afectada
+      description: Ayuda a enrutar el issue al equipo correcto.
+      options:
+        - ingesta
+        - datos
+        - fr
+        - admin
+        - ui
+        - db
+        - ci
+        - no sé
+    validations:
+      required: true
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Severidad
+      options:
+        - "🔴 Crítico — afecta a usuarios en producción ahora"
+        - "🟠 Alto — funcionalidad rota, hay workaround"
+        - "🟡 Medio"
+        - "🟢 Menor"
+    validations:
+      required: true
+  - type: textarea
+    id: extra
+    attributes:
+      label: Contexto extra (logs, capturas, navegador)
+      description: "Recuerda: sin PII."

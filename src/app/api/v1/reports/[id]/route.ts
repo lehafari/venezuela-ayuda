@@ -17,6 +17,7 @@ import {
   errorBody,
   SERVICE_UNAVAILABLE_MESSAGE,
 } from "@/lib/apiPolicy.mjs";
+import type { Json } from "@/types/database.types.gen";
 
 // /api/v1/reports/{id} — un reporte por su id global (uuid).
 //
@@ -35,6 +36,13 @@ export const maxDuration = 30;
 const MAX_PATCH_BODY_BYTES = 64 * 1024; // un patch es UN objeto; 64KB sobra
 
 type Params = { params: Promise<{ id: string }> };
+type ReportTable = "checkins" | "help_requests" | "help_offers" | "damaged_reports";
+type ReportView = "public_checkins" | "public_help_requests" | "public_help_offers" | "public_damaged_reports";
+type ReportResource = {
+  table: ReportTable;
+  view: ReportView;
+  columns: string[];
+};
 
 // Proyecta una fila CRUDA (con PII) a sus columnas públicas + `type`. Whitelist
 // por VIEW_COLUMNS → phone_private/contact/manage_token nunca salen.
@@ -48,6 +56,41 @@ function projectPublic(table: string, row: Record<string, unknown>): Record<stri
   const out: Record<string, unknown> = { type: typeForResource(table, row) };
   for (const c of cols) out[c] = row[c] ?? null;
   return out;
+}
+
+async function probeReportTable(
+  svc: ReturnType<typeof getServerSupabase>,
+  table: ReportTable,
+  id: string,
+) {
+  switch (table) {
+    case "checkins":
+      return svc.from("checkins").select("id,status").eq("id", id).maybeSingle();
+    case "help_requests":
+      return svc.from("help_requests").select("id").eq("id", id).maybeSingle();
+    case "help_offers":
+      return svc.from("help_offers").select("id").eq("id", id).maybeSingle();
+    case "damaged_reports":
+      return svc.from("damaged_reports").select("id").eq("id", id).maybeSingle();
+  }
+}
+
+async function probeReportView(
+  svc: ReturnType<typeof getServerSupabase>,
+  resource: ReportResource,
+  id: string,
+) {
+  const select = resource.columns.join(",");
+  switch (resource.view) {
+    case "public_checkins":
+      return svc.from("public_checkins").select(select).eq("id", id).maybeSingle();
+    case "public_help_requests":
+      return svc.from("public_help_requests").select(select).eq("id", id).maybeSingle();
+    case "public_help_offers":
+      return svc.from("public_help_offers").select(select).eq("id", id).maybeSingle();
+    case "public_damaged_reports":
+      return svc.from("public_damaged_reports").select(select).eq("id", id).maybeSingle();
+  }
 }
 
 export async function GET(req: Request, { params }: Params) {
@@ -67,10 +110,9 @@ export async function GET(req: Request, { params }: Params) {
   // Probar las 4 vistas públicas en paralelo (id es PK). La vista filtra hidden
   // y omite PII por construcción. Primera que devuelve fila → ese es el reporte.
   const svc = getServerSupabase();
+  const resources = RESOURCES as ReportResource[];
   const lookups = await Promise.allSettled(
-    RESOURCES.map((r) =>
-      svc.from(r.view).select((r.columns as string[]).join(",")).eq("id", id).maybeSingle()
-    )
+    resources.map((r) => probeReportView(svc, r, id))
   );
 
   for (let i = 0; i < lookups.length; i++) {
@@ -83,7 +125,7 @@ export async function GET(req: Request, { params }: Params) {
     }
     const row = out.value.data as Record<string, unknown> | null;
     if (row) {
-      const table = RESOURCES[i].table;
+      const table = resources[i].table;
       return NextResponse.json(
         { report: { type: typeForResource(table, row), ...row } },
         { headers: { "Cache-Control": PUBLIC_CDN_CACHE } }
@@ -150,10 +192,9 @@ export async function PATCH(req: Request, { params }: Params) {
   // interno, no una razón para bloquear el fix. Se selecciona `id` (+ `status`
   // en checkins, que desambigua missing_person vs checkin).
   const svc = getServerSupabase();
+  const resources = RESOURCES as ReportResource[];
   const probes = await Promise.allSettled(
-    RESOURCES.map((r) =>
-      svc.from(r.table).select(r.table === "checkins" ? "id,status" : "id").eq("id", id).maybeSingle()
-    )
+    resources.map((r) => probeReportTable(svc, r.table, id))
   );
 
   let table: string | null = null;
@@ -165,7 +206,7 @@ export async function PATCH(req: Request, { params }: Params) {
     }
     const row = out.value.data as Record<string, unknown> | null;
     if (row) {
-      table = RESOURCES[i].table;
+      table = resources[i].table;
       resolvedType = typeForResource(table, row);
       break;
     }
@@ -195,12 +236,12 @@ export async function PATCH(req: Request, { params }: Params) {
   const { data, error } = await svc.rpc("patch_report", {
     p_table: table,
     p_id: id,
-    p_patch: patch.patch,
+    p_patch: patch.patch as Json,
     p_partner: partner.partnerId,
     p_source: source,
     p_request_id: meta.requestId,
-    p_ip: meta.ip,
-    p_user_agent: meta.userAgent,
+    p_ip: meta.ip ?? "",
+    p_user_agent: meta.userAgent ?? "",
   });
   if (error) {
     return NextResponse.json(errorBody(SERVICE_UNAVAILABLE_MESSAGE, requestId), { status: 503, headers: rid });

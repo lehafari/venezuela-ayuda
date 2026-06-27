@@ -385,8 +385,10 @@ export async function getMatchingRequests(params: {
     .limit(params.limit ?? 150);
   if (params.status === "OPEN" || params.status === "IN_PROGRESS")
     query = query.eq("status", params.status);
-  if (params.categories && params.categories.length)
-    query = query.in("category", params.categories);
+  if (params.categories && params.categories.length) {
+    const categories = params.categories.filter((c): c is HelpCategory => c in HELP_CATEGORIES);
+    if (categories.length) query = query.in("category", categories);
+  }
   if (params.city) query = query.ilike("city", `%${escapeLike(params.city)}%`);
 
   const { data, error } = await query;
@@ -686,8 +688,13 @@ async function getMapMarkersUncached(): Promise<MapMarker[]> {
       lat: o.latitude!,
       lng: o.longitude!,
       title: `Ofrece: ${OFFER_CATEGORIES[o.category]?.label ?? o.category}`,
-      subtitle: (o.description ?? o.city ?? undefined)?.slice(0, 120),
-      href: "/mapa",
+      // Show the available info IN the popup — offers have no detail page and the
+      // contact is private, so there's nothing to navigate to. `href: ""` makes
+      // MapView render no link (previously "/mapa", which just reloaded the map).
+      subtitle:
+        [o.description, o.city, o.availability].filter(Boolean).join(" · ").slice(0, 200) ||
+        undefined,
+      href: "",
     });
   }
 

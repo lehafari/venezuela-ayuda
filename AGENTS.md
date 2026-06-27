@@ -1,122 +1,137 @@
-# AGENTS.md — instrucciones para agentes de IA
+# AGENTS.md
 
-> **Fuente única de verdad para TODOS los agentes de IA** (Claude Code, Cursor, GitHub
-> Copilot, OpenAI Codex). `AGENTS.md` es el estándar abierto que estas herramientas leen;
-> los demás archivos (`CLAUDE.md`, `.cursor/rules/`, `.github/copilot-instructions.md`)
-> **apuntan aquí** para no duplicar ni divergir.
->
-> Si editas las reglas de la IA, **edita este archivo**. El agente lee el `AGENTS.md` más
-> cercano al archivo que toca; este (raíz) aplica a todo el repo.
->
-> ⚠️ Esto es **contexto en lenguaje natural, no un control que se hace cumplir solo**. Las
-> barreras duras (bloquear acciones, gates de CI) viven en hooks/permits/CI — ver
-> [`docs/colaboracion/harness-ia.md`](docs/colaboracion/harness-ia.md).
+Guidance for AI coding agents and humans working in this repository.
 
-## Qué es este proyecto
+## Project Overview
 
-`venezuela-ayuda` — app **Next.js en PRODUCCIÓN** para respuesta a una emergencia en
-Venezuela. Coordina personas, solicitudes/ofertas de ayuda, edificios dañados y centros de
-acopio. Maneja **datos personales reales (PII)**. Un error en producción afecta a personas
-en una emergencia.
+Venezuela Ayuda is the central coordination backend and public web surface for
+earthquake-response data. It accepts partner writes through an authenticated API,
+serves public reads through redacted views, and keeps moderation, audit history,
+deduplication, and partner attribution close to the source database.
 
-- Stack: Next.js (App Router) + TypeScript + Supabase (Postgres). Lógica pura de ingesta/dedup
-  en `.mjs` testeable con `node --test`.
-- Ramas: `feat/* → staging → main`. **`main` = producción.**
+The project is public and community-oriented, but it handles crisis-response
+data. Treat privacy, provenance, and reversibility as core product features.
 
-## Reglas de oro (NUNCA las rompas)
+## Non-Negotiables
 
-1. **Cautela en producción.** Ante cualquier acción que afecte datos reales o `main`,
-   **detente y pregunta**. "Compila" no es "funciona".
-2. **PII nunca se filtra.** No imprimas teléfonos/contactos/`manage_token` en logs ni los
-   expongas por endpoints o vistas públicas. No los pegues en commits, issues o PRs.
-3. **Secretos jamás al repo.** Nunca commitees `.env*`, API keys o tokens. Si encuentras uno
-   filtrado, avísalo — no lo ignores.
-4. **No te saltes las barreras.** Nunca uses `--no-verify`, no deshabilites checks de CI, no
-   hagas push directo a `main`/`staging`, no fuerces push (`--force`) a ramas compartidas.
-5. **Un humano es responsable.** Tu salida es una **propuesta**: va por PR y la revisa una
-   persona. No mergeas tú.
+- Never expose private contact details, phone numbers, raw admin notes, API keys,
+  Supabase service keys, database URLs, personal IDs, private photos, or private
+  relay data.
+- Public reads must come from explicit public projections or whitelisted fields.
+  Do not serialize raw table rows to API or UI responses.
+- Partner writes must be authenticated server-to-server with `x-api-key`.
+  Browser-based writes with partner keys are not allowed.
+- Preserve source attribution. Do not trust a caller-provided `source`; stamp it
+  from the authenticated partner record.
+- Duplicate matching is advisory. Do not imply automatic identity merge,
+  automatic resolution, or destructive cleanup without coordinator review.
+- Keep migrations append-only once reviewed. Add a new migration instead of
+  editing a migration that may already have run.
+- Write paths should be deterministic. AI may classify or assist, but must not
+  silently mutate canonical records.
 
-## Comandos (úsalos para verificar tu trabajo)
+## Stack
+
+- Next.js App Router with TypeScript
+- Supabase Postgres/PostGIS as the source of truth
+- Server Actions for local public flows
+- `/api/v1/reports` as the partner data exchange API
+- `node --test` for focused backend/helper tests
+- ESLint and `next build` for app validation
+- Vercel for hosting
+
+## Commands
 
 ```bash
-npm install          # dependencias
-npm run dev          # servidor local
-npm run lint         # ESLint  ← debe pasar
-npm run build        # next build  ← debe pasar
-npm test             # node --test scripts/*.test.mjs  ← debe pasar
+npm install
+npm run lint
+npm test
+npm run build
 ```
 
-**Antes de proponer cambios, corre `lint`, `build` y `test` y deja que pasen.** Si listas o
-sigues estos comandos, ejecútalos y **corrige los fallos antes de terminar la tarea**, no
-después.
+For local development:
 
-## Cómo trabajar aquí
+```bash
+cp .env.example .env.local
+npm run dev
+```
 
-1. **Cambios pequeños y enfocados.** Un PR = un cambio lógico. Ramas `feat/<área>/<desc>`
-   desde `staging` (áreas: `ingesta`, `datos`, `fr`, `admin`, `mapa`, `db`, `ci`, `ui`).
-2. **Imita el código existente.** Convenciones, naming, densidad de comentarios del entorno.
-   No introduzcas dependencias ni patrones nuevos sin justificarlo.
-3. **Verifica contra lo real.** La lógica de ingesta/dedup tiene tests (`scripts/*.test.mjs`);
-   amplíalos cuando cambies comportamiento.
-4. **Commits** en conventional commits (`feat(ingesta): …`). Si un humano y la IA co-escriben,
-   se puede atribuir con `Co-authored-by:` (usa el email de la cuenta de GitHub para que cuente).
-5. **PRs** contra `staging`. Llena la plantilla; marca el checklist de migraciones si aplica.
+Use real secrets only in `.env.local` or platform secret stores. Never commit
+local backups, exported data, Supabase temp state, or copied production payloads.
 
-## Permisos: Always / Ask first / Never
+## Repository Layout
 
-**✅ Always (puedes hacerlo sin preguntar):**
-- Leer el código, correr `lint`/`build`/`test`, formatear.
-- Escribir y **añadir** tests (nunca borrarlos, ver abajo).
-- Crear ramas `feat/*`, abrir PRs en borrador.
+```text
+src/app/                   Next.js routes, Server Actions, and API routes
+src/app/api/v1/reports/    Partner read/write hub API
+src/components/            Public UI, forms, admin components
+src/lib/                   Backend helpers, validation, auth, audit, reports
+messages/{es,en}/          next-intl message namespaces
+supabase/migrations/       Database schema and policy history
+scripts/                   Tests, migration helpers, ingest/dedup utilities
+public/openapi.yaml        Partner API contract
+docs/                      Handoffs, plans, and operator guidance
+```
 
-**⚠️ Ask first (propón y espera aprobación humana):**
-- Cambios en `supabase/migrations/` (ver [migraciones](docs/colaboracion/gestion-de-migraciones.md)).
-- Tocar `src/lib/fr.ts` (reconocimiento facial), `src/app/admin/` o cualquier flujo con PII.
-- Instalar/actualizar dependencias; cambiar config de build, CI o `next.config`.
-- Cualquier cosa que escriba en producción o llame a servicios externos con datos reales.
+## Coding Conventions
 
-**⛔ Never (no lo hagas nunca):**
-- Commitear secretos o `.env*`; editar `node_modules/` o cualquier `vendor/`.
-- Exponer PII en logs, endpoints públicos, commits, issues o PRs.
-- **Borrar o deshabilitar un test porque está fallando** — arregla la causa o repórtalo.
-- Push directo a `main`/`staging`, `--force` a ramas compartidas, `--no-verify`, saltarte CI.
-- Migraciones destructivas en la misma migración que añade (usa expand → migrate → contract).
-- Ejecutar comandos destructivos (`rm -rf`, `DROP`, `TRUNCATE`, resets de DB) sin aprobación.
+- Prefer small, deterministic helpers in `src/lib/` and keep route handlers thin.
+- Validate external input before writing. Reject or normalize at the boundary,
+  not after data reaches Postgres.
+- Select public fields explicitly. Do not use `select("*")` for public API
+  responses or audit-history projection.
+- Keep privacy rules duplicated only when tests assert the shared invariant.
+  Prefer shared maps like `VIEW_COLUMNS`, `VIEW_FOR_TABLE`, and canonical enums.
+- Keep Spanish public copy in `messages/es/`; keep machine enum values stable.
+- Use server-only Supabase clients for writes. Client code should never receive
+  service-role credentials or partner API keys.
+- Preserve `request_id`, partner source, audit entries, and idempotency behavior
+  when touching write paths.
+- For migrations, update tests and docs when changing public views, private
+  fields, partner auth, audit behavior, or API response shapes.
 
-## Flujo de trabajo: planear → ejecutar → verificar
+## Review Checklist
 
-Para cualquier cambio **no trivial**, sigue este ciclo (en vez de codear directo):
+- Does the change preserve private-field redaction in UI, API, and audit history?
+- Does every write path keep source attribution and auditability?
+- Are new migrations forward-only and safe for both `staging` and `main`?
+- Are public docs clear that reports are community coordination signals, not
+  official government or structural-safety certification?
+- Did you run the narrowest useful test plus `npm run lint` or `npm run build`
+  when touching application code?
 
-1. **Planear** — diseña un plan concreto antes de tocar código (archivos, pasos, riesgos,
-   cómo verificar). En Claude Code: subagente **`planner`**.
-2. **Ejecutar** — implementa siguiendo el plan, imitando el código existente; escribe los
-   tests en la misma iteración.
-3. **Verificar** — corre `lint`/`build`/`test` y revisa el diff contra las reglas de oro
-   (PII, secretos, tests, migraciones). En Claude Code: subagente **`verifier`**. Si falla,
-   vuelve a ejecutar con el error exacto. **No cierres con el gate en rojo.**
+## Git
 
-En **Claude Code** el ciclo está automatizado con el comando **`/feature <descripción>`**
-(orquesta `planner → executor → verifier`); los subagentes viven en `.claude/agents/`.
-Otros agentes (Cursor/Copilot/Codex): aplica el mismo ciclo manualmente — planifica primero,
-implementa, y **verifica con los comandos de arriba antes de terminar**.
+Use focused branches and pull requests. Do not push directly to `main` or
+`staging` unless the maintainers explicitly instruct you to do so.
 
-Escala el flujo a la tarea: cambios triviales pueden ser una sola pasada; reserva el ciclo
-completo para lo no trivial o lo que toca datos reales.
+Default PR target: `staging`. Branch from `upstream/staging`, push to a fork or
+feature branch, and open the PR against `mawmawmaw/venezuela-ayuda:staging`.
+Review the staged app at <https://venezuela-ayuda-staging.vercel.app/>. If a PR
+was accidentally opened against `main`, rebase the feature branch onto
+`upstream/staging` before changing the PR base so unrelated `main`-only commits
+do not appear in the diff.
 
-## Migraciones de base de datos ⚠️
+Recommended branch names:
 
-Alto riesgo con muchos colaboradores. Antes de tocar `supabase/migrations/`, lee
-[`docs/colaboracion/gestion-de-migraciones.md`](docs/colaboracion/gestion-de-migraciones.md).
-Resumen: **nombre por timestamp** (`YYYYMMDDHHMM_desc.sql`, no secuencial), **idempotente**
-(`if not exists`), **reversible**, y cambios destructivos en una migración **posterior**.
+```text
+feat/<area>-<short-description>
+fix/<area>-<short-description>
+docs/<short-description>
+task/<short-description>
+```
 
-## Más contexto
+Use conventional commits when possible, for example:
 
-- Cómo colaborar (ramas, revisión, gobernanza): [`docs/colaboracion/`](docs/colaboracion/)
-- Cómo contribuir: [`CONTRIBUTING.md`](CONTRIBUTING.md) · Seguridad/PII: [`SECURITY.md`](SECURITY.md)
-- Por qué de este harness (con fuentes): [`docs/colaboracion/harness-ia.md`](docs/colaboracion/harness-ia.md)
-- Flujo planear→ejecutar→verificar y los subagentes: [`docs/colaboracion/flujo-agentes-ia.md`](docs/colaboracion/flujo-agentes-ia.md)
+```text
+docs: add open-source contribution guide
+fix(api): preserve request id on partner write failures
+feat(admin): add duplicate review filter
+```
 
-_Mantén este archivo conciso (apunta a <~300 líneas). Las herramientas tienen límites de
-carga (p. ej. Codex corta el conjunto de AGENTS.md a 32 KiB; Cursor recomienda reglas
-<500 líneas). Detalle largo → enlázalo, no lo pegues._
+## Security
+
+Follow the repository security policy and the collaboration docs once they land.
+Do not open public issues or PR comments that contain real phone numbers, private
+contacts, API keys, database URLs, or sensitive crisis records. Use sanitized
+examples.

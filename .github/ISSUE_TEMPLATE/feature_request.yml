@@ -1,0 +1,51 @@
+name: "✨ Propuesta de mejora"
+description: "Sugiere una funcionalidad o cambio"
+title: "[feat] "
+labels: ["enhancement", "status:needs-triage"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problema / necesidad
+      description: ¿Qué problema real resuelve? ¿A quién ayuda?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Propuesta
+      description: Qué te gustaría que pasara.
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Área
+      options:
+        - ingesta
+        - datos
+        - fr
+        - admin
+        - ui
+        - db
+        - ci
+        - no sé
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternativas consideradas
+  - type: checkboxes
+    id: impact
+    attributes:
+      label: Impacto
+      options:
+        - label: Requiere migración de base de datos
+        - label: Afecta producción / datos reales
+        - label: Solo UI / interno
+  - type: markdown
+    attributes:
+      value: |
+        Si es un cambio estructural, probablemente necesite un **ADR** antes de implementarse
+        (ver `docs/colaboracion/gobernanza.md`).

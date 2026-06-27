@@ -10,6 +10,7 @@ import { patchArgs, deleteArgs } from "@/lib/internalWrite.mjs";
 import { buildRow, INGEST_TABLES } from "@/lib/ingest.mjs";
 import { parseDump } from "@/lib/batchIngest.mjs";
 import { VA_PARTNER_ID } from "@/lib/canonical.mjs";
+import type { Json } from "@/types/database.types.gen";
 
 export type AuthState = { error?: string };
 type Result = { ok: boolean; error?: string };
@@ -446,12 +447,12 @@ export async function ingestBatch(input: {
     tables.map((t) =>
       svc.rpc("ingest_reports", {
         p_table: t,
-        p_rows: [...byTable[t].values()],
+        p_rows: [...byTable[t].values()] as Json,
         p_partner: VA_PARTNER_ID,
         p_source: source,
-        p_request_id: null,
-        p_ip: null,
-        p_user_agent: null,
+        p_request_id: "",
+        p_ip: "",
+        p_user_agent: "",
       }),
     ),
   );
